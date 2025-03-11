@@ -137,11 +137,12 @@
         <div id="result"></div>
     </div>
 
-  <script>
-    let dropArea = document.body; // Drag & Drop anywhere on the page
+<script>
+    let dropArea = document.body;
     let imageInput = document.getElementById("imageInput");
     let searchBtn = document.getElementById("searchBtn");
     let preview = document.getElementById("preview");
+    let resultDiv = document.getElementById("result");
 
     // ✅ Clicking Upload Box Triggers File Selection
     document.getElementById("drop-area").addEventListener("click", () => imageInput.click());
@@ -149,7 +150,7 @@
     // ✅ Drag & Drop Anywhere on Page
     dropArea.addEventListener("dragover", (event) => {
         event.preventDefault();
-        document.body.style.background = "#e9f5ff"; // Highlight the page
+        document.body.style.background = "#e9f5ff";
     });
 
     dropArea.addEventListener("dragleave", () => document.body.style.background = "#f8f9fa");
@@ -162,15 +163,26 @@
         previewImage(file);
     });
 
-    // ✅ File Selection Works Properly
+    // ✅ File Selection & Image Preview
     imageInput.addEventListener("change", function(event) {
         let file = event.target.files[0];
         previewImage(file);
     });
 
-    // ✅ Prevent File Upload Window from Opening on Search Button Click
+    function previewImage(file) {
+        if (file) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = "block";
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // ✅ Search Button Logic
     searchBtn.addEventListener("click", function(event) {
-        event.preventDefault(); // Stops triggering file selection
+        event.preventDefault(); // Stop default behavior
 
         let file = imageInput.files[0];
         if (!file) {
@@ -191,21 +203,20 @@
                 searchBtn.innerHTML = "🔍 Search";
                 searchBtn.disabled = false;
 
-                let resultDiv = document.getElementById("result");
                 resultDiv.innerHTML = `<h3>🔍 Reverse Search:</h3>`;
-
+                
                 let searchEngines = [
-                    "Google Lens", 
-                    "Yandex Reverse Search", 
-                    "Bing Visual Search", 
-                    "Reddit Reverse Search", 
-                    "IQDB (Anime & Art)", 
-                    "WhatAnime (Anime Scene Search)"
+                    { name: "Google Lens", url: data.reverse_search_links["Google Lens"] },
+                    { name: "Yandex Search", url: data.reverse_search_links["Yandex Reverse Search"] },
+                    { name: "Bing Search", url: data.reverse_search_links["Bing Visual Search"] },
+                    { name: "Reddit Reverse Search", url: data.reverse_search_links["Reddit Reverse Search"] },
+                    { name: "IQDB (Anime & Art)", url: data.reverse_search_links["IQDB"] },
+                    { name: "WhatAnime (Anime Scene Search)", url: data.reverse_search_links["WhatAnime"] }
                 ];
 
                 searchEngines.forEach(engine => {
-                    if (data.reverse_search_links[engine]) {
-                        resultDiv.innerHTML += `<a class="reverse-search-btn" href="${data.reverse_search_links[engine]}" target="_blank">${engine}</a>`;
+                    if (engine.url) {
+                        resultDiv.innerHTML += `<a class="reverse-search-btn" href="${engine.url}" target="_blank">${engine.name}</a>`;
                     }
                 });
             })
@@ -216,19 +227,8 @@
                 console.error("Upload error:", error);
             });
     });
-
-    // ✅ Image Preview Function
-    function previewImage(file) {
-        if (file) {
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                preview.src = e.target.result;
-                preview.style.display = "block";
-            };
-            reader.readAsDataURL(file);
-        }
-    }
 </script>
+
 
 
 </body>
