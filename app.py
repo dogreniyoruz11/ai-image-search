@@ -24,20 +24,27 @@ except Exception as e:
 # Function to preprocess image for AI model
 def preprocess_image(image_path):
     try:
-        image = Image.open(image_path)
+        image = Image.open(image_path).convert('RGB')  # Ensures RGB format
         image = image.resize((224, 224))
-        image_array = np.array(image) / 255.0  # Normalize
+        image_array = np.array(image, dtype=np.float32) / 255.0  # Normalize
         image_array = np.expand_dims(image_array, axis=0)
         return image_array
     except Exception as e:
         logging.error(f"Error Preprocessing Image: {e}")
         return None
 
+
 # Function to perform AI-based object recognition
 def recognize_objects(image_path):
     processed_image = preprocess_image(image_path)
     if processed_image is None:
+        logging.error("Failed to preprocess image")
         return None
+
+    if model is None:
+        logging.error("AI Model is not loaded")
+        return None
+
     try:
         predictions = model.predict(processed_image)
         decoded_predictions = tf.keras.applications.mobilenet_v2.decode_predictions(predictions, top=3)[0]
@@ -45,6 +52,7 @@ def recognize_objects(image_path):
     except Exception as e:
         logging.error(f"Error Processing Image in AI Model: {e}")
         return None
+
 
 # Home route
 @app.route('/')
