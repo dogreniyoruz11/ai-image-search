@@ -1,11 +1,11 @@
 import os
 import logging
+import json
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from PIL import Image
 import numpy as np
 import tensorflow as tf
 import cv2
-import requests
 
 # Enable Logging
 logging.basicConfig(level=logging.DEBUG)
@@ -14,8 +14,9 @@ app = Flask(__name__, template_folder='templates')
 
 # Ensure "uploads" directory exists
 os.makedirs("uploads", exist_ok=True)
+os.makedirs("uploads/enhanced", exist_ok=True)
 
-# Load AI Model for Image Enhancement
+# Load AI Model for Image Enhancement & Captioning
 try:
     model = tf.keras.applications.MobileNetV2(weights='imagenet')
     model.compile()
@@ -24,7 +25,7 @@ except Exception as e:
     logging.error(f"❌ Error Loading AI Model: {e}")
     model = None
 
-# AI-Based Image Caption Generator
+# ✅ AI-Based Image Caption Generator
 def generate_image_caption(image_path):
     try:
         image = Image.open(image_path).convert('RGB')
@@ -38,25 +39,24 @@ def generate_image_caption(image_path):
         logging.error(f"❌ Error generating caption: {e}")
         return "Unknown Image"
 
-# AI-Based Image Enhancement (Upscaling)
+# ✅ AI-Based Image Enhancement (Upscaling)
 def enhance_image(image_path):
     try:
         image = cv2.imread(image_path)
         image_upscaled = cv2.resize(image, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
         enhanced_path = image_path.replace("uploads", "uploads/enhanced")
-        os.makedirs("uploads/enhanced", exist_ok=True)
         cv2.imwrite(enhanced_path, image_upscaled)
         return enhanced_path
     except Exception as e:
         logging.error(f"❌ Error enhancing image: {e}")
         return image_path
 
-# Home Route
+# ✅ Home Route
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# Upload and Generate Reverse Search Links
+# ✅ Upload & Generate Reverse Search Links
 @app.route('/upload', methods=['POST'])
 def upload_image():
     if 'file' not in request.files:
@@ -95,14 +95,13 @@ def upload_image():
     }
 
     # ✅ Save Recent Searches (Only Keep Last 5 Images)
-    if not os.path.exists("recent_searches.json"):
-        recent_searches = []
-    else:
-        try:
-            with open("recent_searches.json", "r") as f:
+    recent_searches = []
+    if os.path.exists("recent_searches.json"):
+        with open("recent_searches.json", "r") as f:
+            try:
                 recent_searches = json.load(f)
-        except:
-            recent_searches = []
+            except:
+                recent_searches = []
 
     recent_searches.append({"image_url": image_url, "caption": image_caption})
     recent_searches = recent_searches[-5:]  # Keep only last 5 searches
@@ -118,7 +117,7 @@ def upload_image():
         'recent_searches': recent_searches
     })
 
-# Serve Uploaded Images
+# ✅ Serve Uploaded Images
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory('uploads', filename)
