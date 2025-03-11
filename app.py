@@ -24,7 +24,7 @@ except Exception as e:
     logging.error(f"❌ Error Loading AI Model: {e}")
     model = None
 
-# AI-Based Image Caption Generator (Google Vision API - Placeholder)
+# AI-Based Image Caption Generator
 def generate_image_caption(image_path):
     try:
         image = Image.open(image_path).convert('RGB')
@@ -38,7 +38,7 @@ def generate_image_caption(image_path):
         logging.error(f"❌ Error generating caption: {e}")
         return "Unknown Image"
 
-# AI-Based Image Enhancement (Upscaling - Placeholder)
+# AI-Based Image Enhancement (Upscaling)
 def enhance_image(image_path):
     try:
         image = cv2.imread(image_path)
@@ -64,6 +64,13 @@ def upload_image():
 
     file = request.files['file']
     filename = file.filename
+    file_ext = filename.split('.')[-1].lower()
+
+    # ✅ Supported File Types
+    allowed_extensions = {'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'heic', 'tiff'}
+    if file_ext not in allowed_extensions:
+        return jsonify({'error': f"Unsupported file type: {file_ext}"}), 400
+
     file_path = os.path.join("uploads", filename)
     file.save(file_path)
 
@@ -75,7 +82,7 @@ def upload_image():
     image_url = f"{request.host_url}uploads/{filename}"
     enhanced_image_url = f"{request.host_url}uploads/enhanced/{filename}"
 
-    # ✅ Reverse Search Links (Updated & Optimized)
+    # ✅ Reverse Search Links (Optimized)
     search_links = {
         "🔍 Google Lens": f"https://lens.google.com/uploadbyurl?url={image_url}",
         "🔍 Bing Visual Search": f"https://www.bing.com/visualsearch?imgurl={image_url}",
@@ -87,11 +94,21 @@ def upload_image():
         "🔍 Reddit Image Search": f"https://www.reddit.com/search?q={image_url}"
     }
 
-    # Save Recent Searches (Only Keep Last 5 Images)
-    recent_searches = []
+    # ✅ Save Recent Searches (Only Keep Last 5 Images)
+    if not os.path.exists("recent_searches.json"):
+        recent_searches = []
+    else:
+        try:
+            with open("recent_searches.json", "r") as f:
+                recent_searches = json.load(f)
+        except:
+            recent_searches = []
+
     recent_searches.append({"image_url": image_url, "caption": image_caption})
-    if len(recent_searches) > 5:
-        recent_searches.pop(0)
+    recent_searches = recent_searches[-5:]  # Keep only last 5 searches
+
+    with open("recent_searches.json", "w") as f:
+        json.dump(recent_searches, f)
 
     return jsonify({
         'reverse_search_links': search_links,
