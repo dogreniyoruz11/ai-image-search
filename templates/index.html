@@ -36,6 +36,7 @@
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             text-align: center;
+            position: relative;
         }
 
         h2 {
@@ -94,7 +95,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
 
-        #result, #recent-searches {
+        #result {
             margin-top: 20px;
             text-align: left;
             font-size: 16px;
@@ -117,42 +118,6 @@
             background: #0056b3;
         }
 
-        /* Responsive Recent Searches */
-        .recent-searches-container {
-            margin-top: 20px;
-            padding: 10px;
-            background: #f1f1f1;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-        }
-
-        .recent-searches-container h3 {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .recent-searches-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .recent-searches-list a {
-            display: inline-block;
-            padding: 8px 12px;
-            background: #007BFF;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 14px;
-            transition: background 0.3s;
-        }
-
-        .recent-searches-list a:hover {
-            background: #0056b3;
-        }
-
     </style>
 </head>
 
@@ -170,30 +135,24 @@
         <button id="searchBtn">🔍 Search</button>
 
         <div id="result"></div>
-
-        <!-- Recent Searches -->
-        <div class="recent-searches-container">
-            <h3>🕘 Recent Searches:</h3>
-            <div class="recent-searches-list" id="recent-searches"></div>
-        </div>
     </div>
 
     <script>
-        let dropArea = document.getElementById("drop-area");
+        let dropArea = document.body; // Now allows drag & drop anywhere on the page
         let imageInput = document.getElementById("imageInput");
 
-        dropArea.addEventListener("click", () => imageInput.click());
+        document.getElementById("drop-area").addEventListener("click", () => imageInput.click());
 
         dropArea.addEventListener("dragover", (event) => {
             event.preventDefault();
-            dropArea.style.background = "#e9f5ff";
+            document.body.style.background = "#e9f5ff"; // Highlight the whole page
         });
 
-        dropArea.addEventListener("dragleave", () => dropArea.style.background = "#f8f9fa");
+        dropArea.addEventListener("dragleave", () => document.body.style.background = "#f8f9fa");
 
         dropArea.addEventListener("drop", (event) => {
             event.preventDefault();
-            dropArea.style.background = "#f8f9fa";
+            document.body.style.background = "#f8f9fa";
             let file = event.dataTransfer.files[0];
             imageInput.files = event.dataTransfer.files;
             previewImage(file);
@@ -231,13 +190,6 @@
                     if (data.reverse_search_links[engine]) {
                         resultDiv.innerHTML += `<a class="reverse-search-btn" href="${data.reverse_search_links[engine]}" target="_blank">${engine}</a>`;
                     }
-                });
-
-                // Show Recent Searches
-                let recentSearchesDiv = document.getElementById("recent-searches");
-                recentSearchesDiv.innerHTML = "";
-                data.recent_searches.forEach(search => {
-                    recentSearchesDiv.innerHTML += `<a href="${search.image_url}" target="_blank">${search.caption}</a>`;
                 });
             });
         });
