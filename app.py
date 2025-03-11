@@ -4,14 +4,13 @@ from flask import Flask, request, jsonify, render_template, send_from_directory
 from PIL import Image
 import numpy as np
 import tensorflow as tf
-import cv2
 
 # Enable Logging
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__, template_folder='templates')
 
-# Ensure directories exist
+# Ensure "uploads" directory exists
 os.makedirs("uploads", exist_ok=True)
 
 # Load AI Model for Image Captioning
@@ -67,7 +66,7 @@ def upload_image():
     search_links = {
         "Google Lens": f"https://lens.google.com/uploadbyurl?url={image_url}",
         "Yandex Reverse Search": f"https://yandex.com/images/search?source=collections&rpt=imageview&url={image_url}",
-        "Bing Visual Search (Manual Upload)": "https://www.bing.com/visualsearch"  # Bing does NOT support direct URLs
+        "Bing Visual Search (Upload Manually)": "https://www.bing.com/visualsearch"  # Bing does NOT support direct URLs
     }
 
     return jsonify({
