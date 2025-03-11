@@ -91,7 +91,28 @@ def upload_image():
         if results is None:
             return jsonify({'error': 'AI model failed to process image'}), 500
 
-        search_results = f'https://www.bing.com/images/search?q={results[0][1]}'
+
+         # Generate multiple search engine links
+          query = results[0][1].replace(" ", "+")
+
+           search_links = {
+               "Google": f"https://www.google.com/search?tbm=isch&q={query}",
+               "Bing": f"https://www.bing.com/images/search?q={query}",
+               "Yandex": f"https://yandex.com/images/search?text={query}",
+               "Pinterest": f"https://www.pinterest.com/search/pins/?q={query}"
+            }
+
+           return jsonify({
+                'recognized_objects': [{
+                'name': result[1],
+                'confidence': float(result[2])
+              } for result in results],
+             'search_results': search_links
+           })
+
+
+
+        
 
         return jsonify({
             'recognized_objects': [
