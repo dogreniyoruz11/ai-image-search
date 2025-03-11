@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Image Search & Reverse Lookup</title>
-  
+    <title>AI Image Reverse Search</title>
+
     <!-- Google AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=YOUR_ADSENSE_ID" crossorigin="anonymous"></script>
 
@@ -98,41 +98,21 @@
             font-size: 16px;
         }
 
-        .result-item {
-            font-weight: 600;
-            color: #333;
-        }
-
         .reverse-search-btn {
-            display: inline-block;
+            display: block;
             padding: 12px;
             background: #007BFF;
             color: white;
             text-decoration: none;
             border-radius: 6px;
             font-weight: bold;
-            margin-top: 12px;
+            margin-top: 10px;
             text-align: center;
             transition: background 0.3s ease-in-out;
         }
 
         .reverse-search-btn:hover {
             background: #0056b3;
-        }
-
-        /* Floating Ads (Left & Right) */
-        .floating-ad {
-            position: fixed;
-            width: 160px;
-            height: 600px;
-            top: 100px;
-            z-index: 999;
-        }
-        .left-ad {
-            left: 10px;
-        }
-        .right-ad {
-            right: 10px;
         }
     </style>
 </head>
@@ -150,7 +130,7 @@
     </div>
 
     <div class="container">
-        <h2>🔍 AI Image Search & Reverse Lookup</h2>
+        <h2>🔍 AI Image Reverse Search</h2>
 
         <label for="imageInput" class="upload-box">
             <p>Click to Upload an Image</p>
@@ -169,25 +149,6 @@
              style="display:block"
              data-ad-client="YOUR_ADSENSE_ID"
              data-ad-slot="BOTTOM_AD_SLOT"
-             data-ad-format="auto"></ins>
-        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </div>
-
-    <!-- Left & Right Floating Ads -->
-    <div class="floating-ad left-ad">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="YOUR_ADSENSE_ID"
-             data-ad-slot="LEFT_AD_SLOT"
-             data-ad-format="auto"></ins>
-        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </div>
-
-    <div class="floating-ad right-ad">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="YOUR_ADSENSE_ID"
-             data-ad-slot="RIGHT_AD_SLOT"
              data-ad-format="auto"></ins>
         <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
     </div>
@@ -215,8 +176,6 @@
             let formData = new FormData();
             formData.append("file", fileInput);
             
-            document.getElementById("result").innerHTML = "<p>🔄 Processing image, please wait...</p>";
-
             fetch("/upload", {
                 method: "POST",
                 body: formData
@@ -224,16 +183,12 @@
             .then(response => response.json())
             .then(data => {
                 let resultDiv = document.getElementById("result");
-                resultDiv.innerHTML = `<h3>✅ Recognized Objects:</h3>`;
-                data.recognized_objects.forEach(obj => {
-                    resultDiv.innerHTML += `<p class="result-item">🟢 ${obj.name} (Confidence: ${obj.confidence.toFixed(2)})</p>`;
+                resultDiv.innerHTML = `<h3>🔍 Reverse Search:</h3>`;
+                Object.keys(data.reverse_search_links).forEach(engine => {
+                    resultDiv.innerHTML += `<a class="reverse-search-btn" href="${data.reverse_search_links[engine]}" target="_blank">${engine}</a>`;
                 });
-
-                resultDiv.innerHTML += `<h3>🔍 View Reverse Search on:</h3>`;
-                Object.entries(data.search_results).forEach(([key, value]) => {
-                    resultDiv.innerHTML += `<li><a href="${value}" target="_blank">${key}</a></li>`;
-                });
-            });
+            })
+            .catch(error => console.error("Error:", error));
         });
     </script>
 
