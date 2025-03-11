@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Search & Reverse Lookup</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .adsense {
+            margin: 20px auto;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #333;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .upload-btn {
+            display: inline-block;
+            background-color: #007BFF;
+            color: white;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .upload-btn i {
+            margin-right: 8px;
+        }
+        #result {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .loader {
+            display: none;
+            margin: 20px auto;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #007BFF;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Adsense Ad (Top) -->
+    <div class="adsense">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+    
+    <div class="container">
+        <h2>AI-Powered Image Search & Reverse Lookup</h2>
+        <form id="uploadForm">
+            <label for="imageInput" class="upload-btn">
+                <i class="fas fa-upload"></i> Choose Image
+            </label>
+            <input type="file" id="imageInput" required>
+            <button type="submit" class="upload-btn"><i class="fas fa-search"></i> Search</button>
+        </form>
+        <div class="loader" id="loader"></div>
+        <div id="result"></div>
+    </div>
+    
+    <!-- Adsense Ad (Bottom) -->
+    <div class="adsense">
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" data-ad-slot="xxxxxxxxxx" data-ad-format="auto"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+
+    <script>
+        document.getElementById("uploadForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            let fileInput = document.getElementById("imageInput").files[0];
+            if (!fileInput) return alert("Please select an image.");
+            
+            let formData = new FormData();
+            formData.append("file", fileInput);
+            
+            document.getElementById("loader").style.display = "block";
+            document.getElementById("result").innerHTML = "";
+            
+            fetch("/upload", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("loader").style.display = "none";
+                let resultDiv = document.getElementById("result");
+                resultDiv.innerHTML = `<h3>Recognized Objects:</h3>`;
+                data.recognized_objects.forEach(obj => {
+                    resultDiv.innerHTML += `<p><strong>${obj.name}</strong> (Confidence: ${obj.confidence.toFixed(2)})</p>`;
+                });
+                resultDiv.innerHTML += `<a href="${data.search_results_url}" target="_blank" class="upload-btn">🔍 View Reverse Search</a>`;
+            })
+            .catch(error => {
+                document.getElementById("loader").style.display = "none";
+                console.error("Error:", error);
+            });
+        });
+    </script>
+</body>
+</html>
