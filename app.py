@@ -99,7 +99,8 @@ def upload_image():
                 for result in results
             ],
             'search_results_url': search_results,
-            'uploaded_image_path': file_path
+            'uploaded_image_url': request.host_url + 'uploads/' + file.filename
+
         })
     except Exception as e:
         logging.error(f"Error processing image: {e}")
