@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Image Reverse Search</title>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
         
@@ -92,10 +94,12 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
 
-        #result {
-            margin-top: 20px;
-            text-align: left;
+        #processing {
+            display: none;
             font-size: 16px;
+            font-weight: bold;
+            margin-top: 15px;
+            color: #007BFF;
         }
 
         .reverse-search-btn {
@@ -128,6 +132,7 @@
             <input type="file" id="imageInput" accept="image/*">
         </div>
         <img id="preview" src="#" alt="Uploaded Image">
+        <p id="processing">⏳ Processing your image...</p>
 
         <button id="searchBtn">🔍 Search</button>
 
@@ -135,7 +140,7 @@
     </div>
 
     <script>
-        document.getElementById("imageInput").addEventListener("change", function(event) {
+        $("#imageInput").change(function(event) {
             let file = event.target.files[0];
             previewImage(file);
         });
@@ -144,12 +149,30 @@
             if (file) {
                 let reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById("preview").src = e.target.result;
-                    document.getElementById("preview").style.display = "block";
+                    $("#preview").attr("src", e.target.result).show();
                 };
                 reader.readAsDataURL(file);
             }
         }
+
+        $("#searchBtn").click(function() {
+            $("#processing").show();
+            let file = $("#imageInput")[0].files[0];
+
+            let formData = new FormData();
+            formData.append("file", file);
+
+            fetch("/upload", { method: "POST", body: formData })
+            .then(response => response.json())
+            .then(data => {
+                $("#processing").hide();
+                $("#result").html(`
+                    <a class="reverse-search-btn" href="${data.reverse_search_links.Google}" target="_blank">Google Lens</a>
+                    <a class="reverse-search-btn" href="${data.reverse_search_links.Yandex}" target="_blank">Yandex Search</a>
+                    <a class="reverse-search-btn" href="${data.reverse_search_links.Bing}" target="_blank">Bing Upload</a>
+                `);
+            });
+        });
     </script>
 
 </body>
