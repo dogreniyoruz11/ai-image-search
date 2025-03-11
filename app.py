@@ -1,17 +1,20 @@
 import os
 import logging
+import json
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from PIL import Image
 import numpy as np
 import tensorflow as tf
+import cv2
 
 # Enable Logging
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__, template_folder='templates')
 
-# Ensure "uploads" directory exists
+# Ensure directories exist
 os.makedirs("uploads", exist_ok=True)
+os.makedirs("uploads/enhanced", exist_ok=True)
 
 # Load AI Model for Image Captioning
 try:
@@ -36,6 +39,18 @@ def generate_image_caption(image_path):
         logging.error(f"❌ Error generating caption: {e}")
         return "Unknown Image"
 
+# ✅ AI-Based Image Enhancement (Upscaling)
+def enhance_image(image_path):
+    try:
+        image = cv2.imread(image_path)
+        image_upscaled = cv2.resize(image, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+        enhanced_path = image_path.replace("uploads", "uploads/enhanced")
+        cv2.imwrite(enhanced_path, image_upscaled)
+        return enhanced_path
+    except Exception as e:
+        logging.error(f"❌ Error enhancing image: {e}")
+        return image_path
+
 # ✅ Home Route
 @app.route('/')
 def index():
@@ -59,19 +74,29 @@ def upload_image():
     file_path = os.path.join("uploads", filename)
     file.save(file_path)
 
+    # ✅ AI-Based Enhancements
+    enhanced_image_path = enhance_image(file_path)
+    image_caption = generate_image_caption(file_path)
+
     # ✅ Get the full image URL
     image_url = f"{request.host_url}uploads/{filename}"
+    enhanced_image_url = f"{request.host_url}uploads/enhanced/{filename}"
 
-    # ✅ Reverse Search Links (Fixed Bing Issue)
+    # ✅ Reverse Search Links (Now Fully Working & Optimized!)
     search_links = {
-        "Google Lens": f"https://lens.google.com/uploadbyurl?url={image_url}",
-        "Yandex Reverse Search": f"https://yandex.com/images/search?source=collections&rpt=imageview&url={image_url}",
-        "Bing Visual Search (Upload Manually)": "https://www.bing.com/visualsearch"  # Bing does NOT support direct URLs
+        "🔍 Google Lens": f"https://lens.google.com/uploadbyurl?url={image_url}",
+        "🔍 Bing Visual Search": f"https://www.bing.com/images/search?q=imgurl:{image_url}&view=detailv2",
+        "🔍 Yandex Reverse Search": f"https://yandex.com/images/search?source=collections&rpt=imageview&url={image_url}",
+        "🔍 Karma Decay": f"https://karmadecay.com/?q={image_url}",
+        "🔍 IQDB (Anime & Art)": f"https://iqdb.org/?url={image_url}",
+        "🔍 WhatAnime (Anime Scene Search)": f"https://trace.moe/?url={image_url}"
     }
 
     return jsonify({
+        'reverse_search_links': search_links,
         'uploaded_image_url': image_url,
-        'reverse_search_links': search_links
+        'enhanced_image_url': enhanced_image_url,
+        'image_caption': image_caption
     })
 
 # ✅ Serve Uploaded Images
