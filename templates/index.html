@@ -137,70 +137,99 @@
         <div id="result"></div>
     </div>
 
-    <script>
-        let dropArea = document.body;
-        let imageInput = document.getElementById("imageInput");
+  <script>
+    let dropArea = document.body; // Drag & Drop anywhere on the page
+    let imageInput = document.getElementById("imageInput");
+    let searchBtn = document.getElementById("searchBtn");
+    let preview = document.getElementById("preview");
 
-        document.body.addEventListener("dragover", function (event) {
-            event.preventDefault();
-            document.body.style.background = "#e9f5ff";
-        });
+    // ✅ Clicking Upload Box Triggers File Selection
+    document.getElementById("drop-area").addEventListener("click", () => imageInput.click());
 
-        document.body.addEventListener("dragleave", function () {
-            document.body.style.background = "#f8f9fa";
-        });
+    // ✅ Drag & Drop Anywhere on Page
+    dropArea.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        document.body.style.background = "#e9f5ff"; // Highlight the page
+    });
 
-        document.body.addEventListener("drop", function (event) {
-            event.preventDefault();
-            document.body.style.background = "#f8f9fa";
+    dropArea.addEventListener("dragleave", () => document.body.style.background = "#f8f9fa");
 
-            let file = event.dataTransfer.files[0];
-            imageInput.files = event.dataTransfer.files;
-            previewImage(file);
-        });
+    dropArea.addEventListener("drop", (event) => {
+        event.preventDefault();
+        document.body.style.background = "#f8f9fa";
+        let file = event.dataTransfer.files[0];
+        imageInput.files = event.dataTransfer.files;
+        previewImage(file);
+    });
 
-        dropArea.addEventListener("click", () => imageInput.click());
+    // ✅ File Selection Works Properly
+    imageInput.addEventListener("change", function(event) {
+        let file = event.target.files[0];
+        previewImage(file);
+    });
 
-        imageInput.addEventListener("change", function (event) {
-            let file = event.target.files[0];
-            previewImage(file);
-        });
+    // ✅ Prevent File Upload Window from Opening on Search Button Click
+    searchBtn.addEventListener("click", function(event) {
+        event.preventDefault(); // Stops triggering file selection
 
-        function previewImage(file) {
-            if (file) {
-                let reader = new FileReader();
-                reader.onload = function (e) {
-                    document.getElementById("preview").src = e.target.result;
-                    document.getElementById("preview").style.display = "block";
-                };
-                reader.readAsDataURL(file);
-            }
+        let file = imageInput.files[0];
+        if (!file) {
+            alert("Please select an image to upload.");
+            return;
         }
 
-        document.getElementById("searchBtn").addEventListener("click", function () {
-            let file = imageInput.files[0];
-            if (!file) { alert("Please select an image to upload."); return; }
+        // ✅ Show "Processing..." Effect
+        searchBtn.innerHTML = "⏳ Processing...";
+        searchBtn.disabled = true;
 
-            document.getElementById("processing").style.display = "block";
-            let formData = new FormData();
-            formData.append("file", file);
+        let formData = new FormData();
+        formData.append("file", file);
 
-            fetch("/upload", { method: "POST", body: formData })
+        fetch("/upload", { method: "POST", body: formData })
             .then(response => response.json())
             .then(data => {
-                document.getElementById("processing").style.display = "none";
-                document.getElementById("result").innerHTML = `
-                    <h3>🔍 Reverse Search:</h3>
-                    <a class="reverse-search-btn" href="${data.reverse_search_links['Google Lens']}" target="_blank">Google Lens</a>
-                    <a class="reverse-search-btn" href="${data.reverse_search_links['Yandex Reverse Search']}" target="_blank">Yandex Search</a>
-                    <a class="reverse-search-btn" href="${data.reverse_search_links['Bing Visual Search']}" target="_blank">Bing Search</a>
-                    <a class="reverse-search-btn" href="${data.reverse_search_links['Karma Decay']}" target="_blank">Reddit Reverse Search</a>
-                    <a class="reverse-search-btn" href="${data.reverse_search_links['IQDB']}" target="_blank">Anime & Art Search (IQDB)</a>
-                    <a class="reverse-search-btn" href="${data.reverse_search_links['WhatAnime']}" target="_blank">Anime Scene Search</a>
-                `;
+                searchBtn.innerHTML = "🔍 Search";
+                searchBtn.disabled = false;
+
+                let resultDiv = document.getElementById("result");
+                resultDiv.innerHTML = `<h3>🔍 Reverse Search:</h3>`;
+
+                let searchEngines = [
+                    "Google Lens", 
+                    "Yandex Reverse Search", 
+                    "Bing Visual Search", 
+                    "Reddit Reverse Search", 
+                    "IQDB (Anime & Art)", 
+                    "WhatAnime (Anime Scene Search)"
+                ];
+
+                searchEngines.forEach(engine => {
+                    if (data.reverse_search_links[engine]) {
+                        resultDiv.innerHTML += `<a class="reverse-search-btn" href="${data.reverse_search_links[engine]}" target="_blank">${engine}</a>`;
+                    }
+                });
+            })
+            .catch(error => {
+                searchBtn.innerHTML = "🔍 Search";
+                searchBtn.disabled = false;
+                alert("Error processing your image. Please try again.");
+                console.error("Upload error:", error);
             });
-        });
-    </script>
+    });
+
+    // ✅ Image Preview Function
+    function previewImage(file) {
+        if (file) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = "block";
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
+
 
 </body>
 </html>
