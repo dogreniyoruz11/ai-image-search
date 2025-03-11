@@ -62,58 +62,39 @@ def index():
 # Fix Upload API
 @app.route('/upload', methods=['POST'])
 def upload_image():
-    logging.info("Received image upload request")
-
     if 'file' not in request.files:
-        logging.error("No file found in request")
         return jsonify({'error': 'No file uploaded'}), 400
-
-    file = request.files['file']
-    if file.filename == '':
-        logging.error("Empty file uploaded")
-        return jsonify({'error': 'No file uploaded'}), 400
-
-    # Save the file temporarily
-    upload_folder = 'uploads'
-    os.makedirs(upload_folder, exist_ok=True)  # Ensure directory exists
-    file_path = os.path.join(upload_folder, file.filename)
     
-    try:
-        file.save(file_path)
-        logging.info(f"File saved at {file_path}")
-    except Exception as e:
-        logging.error(f"Error saving file: {e}")
-        return jsonify({'error': 'Error saving file'}), 500
-
+    file = request.files['file']
+    file_path = os.path.join('uploads', file.filename)
+    os.makedirs('uploads', exist_ok=True)  # ✅ Ensure folder exists
+    file.save(file_path)
+    
     # Perform object recognition
-    try:
-        results = recognize_objects(file_path)
-        if results is None:
-            return jsonify({'error': 'AI model failed to process image'}), 500
+    results = recognize_objects(file_path)
+    
+    if not results:
+        return jsonify({'error': 'AI model failed to process image'}), 500
 
+    # ✅ Fix: Ensure correct spacing & indentation
+    query = results[0][1].replace(" ", "+")
+    
+    # ✅ Fix: Add multiple search engines
+    search_links = {
+        "Google": f"https://www.google.com/search?tbm=isch&q={query}",
+        "Bing": f"https://www.bing.com/images/search?q={query}",
+        "Yandex": f"https://yandex.com/images/search?text={query}",
+        "Pinterest": f"https://www.pinterest.com/search/pins/?q={query}"
+    }
 
-         # Generate multiple search engine links
-          query = results[0][1].replace(" ", "+")
-
-           search_links = {
-               "Google": f"https://www.google.com/search?tbm=isch&q={query}",
-               "Bing": f"https://www.bing.com/images/search?q={query}",
-               "Yandex": f"https://yandex.com/images/search?text={query}",
-               "Pinterest": f"https://www.pinterest.com/search/pins/?q={query}"
-            }
-
-           return jsonify({
-                'recognized_objects': [{
-                'name': result[1],
-                'confidence': float(result[2])
-              } for result in results],
-             'search_results': search_links
-           })
-
-
-
+    return jsonify({
+        'recognized_objects': [
+            {'name': result[1], 'confidence': float(result[2])}
+            for result in results
+        ],
+        'search_results': search_links
+    })
         
-
         return jsonify({
             'recognized_objects': [
                 {'name': result[1], 'confidence': float(result[2])} 
