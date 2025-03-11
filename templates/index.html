@@ -96,36 +96,44 @@
     </div>
 
     <script>
-        document.getElementById("uploadForm").addEventListener("submit", function(event) {
-            event.preventDefault();
-            let fileInput = document.getElementById("imageInput").files[0];
-            if (!fileInput) return alert("Please select an image.");
-            
-            let formData = new FormData();
-            formData.append("file", fileInput);
-            
-            document.getElementById("loader").style.display = "block";
-            document.getElementById("result").innerHTML = "";
-            
-            fetch("/upload", {
-                method: "POST",
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("loader").style.display = "none";
+    document.getElementById("uploadForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+        
+        let fileInput = document.getElementById("imageInput").files[0];
+        if (!fileInput) {
+            alert("Please select an image to upload.");
+            return;
+        }
+
+        let formData = new FormData();
+        formData.append("file", fileInput);
+        
+        // Show loading message
+        document.getElementById("result").innerHTML = "<p>Processing image, please wait...</p>";
+
+        fetch("/upload", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById("result").innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
+            } else {
                 let resultDiv = document.getElementById("result");
                 resultDiv.innerHTML = `<h3>Recognized Objects:</h3>`;
                 data.recognized_objects.forEach(obj => {
                     resultDiv.innerHTML += `<p><strong>${obj.name}</strong> (Confidence: ${obj.confidence.toFixed(2)})</p>`;
                 });
                 resultDiv.innerHTML += `<a href="${data.search_results_url}" target="_blank" class="upload-btn">🔍 View Reverse Search</a>`;
-            })
-            .catch(error => {
-                document.getElementById("loader").style.display = "none";
-                console.error("Error:", error);
-            });
+            }
+        })
+        .catch(error => {
+            document.getElementById("result").innerHTML = `<p style="color:red;">Error processing image. Try again.</p>`;
+            console.error("Error:", error);
         });
-    </script>
+    });
+</script>
+
 </body>
 </html>
