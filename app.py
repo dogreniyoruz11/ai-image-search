@@ -123,4 +123,6 @@ def uploaded_file(filename):
     return send_from_directory('uploads', filename)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))  # Use Railway/Heroku-assigned port
+    app.run(debug=True, host='0.0.0.0', port=port)
+
