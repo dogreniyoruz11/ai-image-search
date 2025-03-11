@@ -12,11 +12,11 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__, template_folder='templates')
 
-# Ensure "uploads" and "enhanced" directories exist
+# Ensure directories exist
 os.makedirs("uploads", exist_ok=True)
 os.makedirs("uploads/enhanced", exist_ok=True)
 
-# ✅ Load AI Model for Image Captioning & Enhancement
+# Load AI Model for Image Enhancement & Captioning
 try:
     model = tf.keras.applications.MobileNetV2(weights='imagenet')
     model.compile()
@@ -63,7 +63,7 @@ def upload_image():
         return jsonify({'error': 'No file uploaded'}), 400
 
     file = request.files['file']
-    filename = file.filename
+    filename = file.filename.replace(" ", "_")  # Fix space issue in URLs
     file_ext = filename.split('.')[-1].lower()
 
     # ✅ Supported File Types
@@ -82,16 +82,15 @@ def upload_image():
     image_url = f"{request.host_url}uploads/{filename}"
     enhanced_image_url = f"{request.host_url}uploads/enhanced/{filename}"
 
-    # ✅ Reverse Search Links (Optimized)
+    # ✅ Reverse Search Links (Fixed Bing & TinEye URL Format)
     search_links = {
         "🔍 Google Lens": f"https://lens.google.com/uploadbyurl?url={image_url}",
-        "🔍 Bing Visual Search": f"https://www.bing.com/visualsearch?imgurl={image_url}",
+        "🔍 Bing Visual Search": f"https://www.bing.com/images/search?q=imgurl:{image_url}&view=detailv2",
         "🔍 Yandex Reverse Search": f"https://yandex.com/images/search?source=collections&rpt=imageview&url={image_url}",
         "🔍 Pinterest Image Search": f"https://www.pinterest.com/search/pins/?q={image_url}",
-        "🔍 TinEye Reverse Image": f"https://tineye.com/search?url={image_url}",
-        "🔍 eBay Reverse Search": f"https://www.ebay.com/sch/i.html?_nkw={image_url}",
-        "🔍 Etsy Reverse Search": f"https://www.etsy.com/search?q={image_url}",
-        "🔍 Reddit Image Search": f"https://www.reddit.com/search?q={image_url}"
+        "🔍 TinEye Reverse Image": f"https://www.tineye.com/search/?url={image_url}",
+        "🔍 Reddit Image Search": f"https://www.reddit.com/search?q={image_url}",
+        "🔍 Etsy Reverse Search": f"https://www.etsy.com/search?q={image_url}"
     }
 
     # ✅ Save Recent Searches (Only Keep Last 5 Images)
@@ -123,5 +122,4 @@ def uploaded_file(filename):
     return send_from_directory('uploads', filename)
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  # Use dynamic port
-    app.run(debug=True, host='0.0.0.0', port=port)
+    app.run(debug=True, host='0.0.0.0', port=5000)
