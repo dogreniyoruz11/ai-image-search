@@ -39,18 +39,6 @@ def generate_image_caption(image_path):
         logging.error(f"❌ Error generating caption: {e}")
         return "Unknown Image"
 
-# ✅ AI-Based Image Enhancement (Upscaling)
-def enhance_image(image_path):
-    try:
-        image = cv2.imread(image_path)
-        image_upscaled = cv2.resize(image, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
-        enhanced_path = image_path.replace("uploads", "uploads/enhanced")
-        cv2.imwrite(enhanced_path, image_upscaled)
-        return enhanced_path
-    except Exception as e:
-        logging.error(f"❌ Error enhancing image: {e}")
-        return image_path
-
 # ✅ Home Route
 @app.route('/')
 def index():
@@ -63,40 +51,25 @@ def upload_image():
         return jsonify({'error': 'No file uploaded'}), 400
 
     file = request.files['file']
-    filename = file.filename.replace(" ", "_")  # Fix space issue in URLs
-    file_ext = filename.split('.')[-1].lower()
-
-    # ✅ Supported File Types
-    allowed_extensions = {'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'heic', 'tiff'}
-    if file_ext not in allowed_extensions:
-        return jsonify({'error': f"Unsupported file type: {file_ext}"}), 400
-
+    filename = file.filename.replace(" ", "_")
     file_path = os.path.join("uploads", filename)
     file.save(file_path)
 
-    # ✅ AI-Based Enhancements
-    enhanced_image_path = enhance_image(file_path)
-    image_caption = generate_image_caption(file_path)
-
-    # ✅ Get the full image URL
     image_url = f"{request.host_url}uploads/{filename}"
-    enhanced_image_url = f"{request.host_url}uploads/enhanced/{filename}"
 
-    # ✅ Reverse Search Links (Now Fully Working & Optimized!)
+    # ✅ Reverse Search Links (Auto-upload)
     search_links = {
-        "🔍 Google Lens": f"https://lens.google.com/uploadbyurl?url={image_url}",
-        "🔍 Bing Visual Search": f"https://www.bing.com/images/search?q=imgurl:{image_url}&view=detailv2",
-        "🔍 Yandex Reverse Search": f"https://yandex.com/images/search?source=collections&rpt=imageview&url={image_url}",
-        "🔍 Karma Decay": f"https://karmadecay.com/?q={image_url}",
-        "🔍 IQDB (Anime & Art)": f"https://iqdb.org/?url={image_url}",
-        "🔍 WhatAnime (Anime Scene Search)": f"https://trace.moe/?url={image_url}"
+        "Google Lens": f"https://lens.google.com/uploadbyurl?url={image_url}",
+        "Yandex Reverse Search": f"https://yandex.com/images/search?source=collections&rpt=imageview&url={image_url}",
+        "Bing Visual Search": f"https://www.bing.com/images/search?q=imgurl:{image_url}&view=detailv2",
+        "Reddit Reverse Search": f"https://www.reddit.com/search?q={image_url}",
+        "IQDB": f"https://iqdb.org/?url={image_url}",
+        "WhatAnime": f"https://trace.moe/?url={image_url}"
     }
 
     return jsonify({
         'reverse_search_links': search_links,
-        'uploaded_image_url': image_url,
-        'enhanced_image_url': enhanced_image_url,
-        'image_caption': image_caption
+        'uploaded_image_url': image_url
     })
 
 # ✅ Serve Uploaded Images
