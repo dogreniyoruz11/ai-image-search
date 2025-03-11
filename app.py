@@ -105,5 +105,14 @@ def upload_image():
         logging.error(f"Error processing image: {e}")
         return jsonify({'error': 'Error processing image'}), 500
 
+
+from flask import send_from_directory
+
+# Serve Uploaded Images
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory('uploads', filename)
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
