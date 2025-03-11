@@ -95,7 +95,7 @@
         </script>
     </div>
 
-    <script>
+   <script>
     document.getElementById("uploadForm").addEventListener("submit", function(event) {
         event.preventDefault();
         
@@ -126,6 +126,10 @@
                     resultDiv.innerHTML += `<p><strong>${obj.name}</strong> (Confidence: ${obj.confidence.toFixed(2)})</p>`;
                 });
                 resultDiv.innerHTML += `<a href="${data.search_results_url}" target="_blank" class="upload-btn">🔍 View Reverse Search</a>`;
+                
+                // Show uploaded image
+                resultDiv.innerHTML += `<h3>Uploaded Image:</h3>`;
+                resultDiv.innerHTML += `<img src="${data.uploaded_image_path}" width="300" style="border-radius: 10px; box-shadow: 2px 2px 10px rgba(0,0,0,0.2);">`;
             }
         })
         .catch(error => {
@@ -134,6 +138,7 @@
         });
     });
 </script>
+
 
 </body>
 </html>
