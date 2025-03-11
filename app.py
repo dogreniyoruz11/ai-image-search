@@ -57,15 +57,16 @@ def upload_image():
 
     image_url = f"{request.host_url}uploads/{filename}"
 
-    # ✅ Reverse Search Links (Auto-upload)
-    search_links = {
-        "Google Lens": f"https://lens.google.com/uploadbyurl?url={image_url}",
-        "Yandex Reverse Search": f"https://yandex.com/images/search?source=collections&rpt=imageview&url={image_url}",
-        "Bing Visual Search": f"https://www.bing.com/images/search?q=imgurl:{image_url}&view=detailv2",
-        "Reddit Reverse Search": f"https://www.reddit.com/search?q={image_url}",
-        "IQDB": f"https://iqdb.org/?url={image_url}",
-        "WhatAnime": f"https://trace.moe/?url={image_url}"
-    }
+  # ✅ Reverse Search Links (Fixed Bing Format & Auto-Search)
+search_links = {
+    "Google Lens": f"https://lens.google.com/uploadbyurl?url={image_url}",
+    "Yandex Reverse Search": f"https://yandex.com/images/search?source=collections&rpt=imageview&url={image_url}",
+    "Bing Search": f"https://www.bing.com/images/search?q={image_url}&view=detailv2",
+    "Reddit Reverse Search": f"https://www.reddit.com/search?q={image_url}",
+    "IQDB (Anime & Art)": f"https://iqdb.org/?url={image_url}",
+    "WhatAnime (Anime Scene Search)": f"https://trace.moe/?url={image_url}"
+}
+
 
     return jsonify({
         'reverse_search_links': search_links,
