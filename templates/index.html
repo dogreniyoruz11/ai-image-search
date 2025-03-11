@@ -10,132 +10,21 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 550px;
-            padding: 25px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            text-align: center;
-        }
-
-        h2 {
-            font-size: 22px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .upload-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            border: 2px dashed #007BFF;
-            border-radius: 10px;
-            background-color: #f8f9fa;
-            cursor: pointer;
-            transition: all 0.3s ease-in-out;
-        }
-
-        .upload-box:hover {
-            background-color: #e9f5ff;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            background: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            margin-top: 15px;
-            transition: background 0.3s ease-in-out;
-        }
-
-        button:hover {
-            background: #0056b3;
-        }
-
-        #preview {
-            width: 100%;
-            max-height: 250px;
-            object-fit: contain;
-            margin-top: 15px;
-            border-radius: 8px;
-            display: none;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-
-        #enhanced-preview {
-            display: none;
-            width: 100%;
-            max-height: 250px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            margin-top: 10px;
-        }
-
-        #result, #recent-searches {
-            margin-top: 20px;
-            text-align: left;
-            font-size: 16px;
-        }
-
-        .reverse-search-btn {
-            display: block;
-            padding: 12px;
-            background: #007BFF;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: bold;
-            margin-top: 10px;
-            text-align: center;
-            transition: background 0.3s ease-in-out;
-        }
-
-        .reverse-search-btn:hover {
-            background: #0056b3;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; display: flex; align-items: center; justify-content: center; flex-direction: column; min-height: 100vh; padding: 20px; }
+        .container { width: 100%; max-width: 550px; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); text-align: center; }
+        h2 { font-size: 22px; font-weight: 600; color: #333; margin-bottom: 20px; }
+        .upload-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; border: 2px dashed #007BFF; border-radius: 10px; background-color: #f8f9fa; cursor: pointer; transition: all 0.3s ease-in-out; }
+        .upload-box:hover { background-color: #e9f5ff; }
+        input[type="file"] { display: none; }
+        button { width: 100%; padding: 12px; font-size: 16px; font-weight: bold; cursor: pointer; background: #007BFF; color: white; border: none; border-radius: 5px; margin-top: 15px; transition: background 0.3s ease-in-out; }
+        button:hover { background: #0056b3; }
+        #preview, #enhanced-preview { width: 100%; max-height: 250px; object-fit: contain; margin-top: 15px; border-radius: 8px; display: none; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        #result, #recent-searches { margin-top: 20px; text-align: left; font-size: 16px; }
+        .reverse-search-btn { display: block; padding: 12px; background: #007BFF; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 10px; text-align: center; transition: background 0.3s ease-in-out; }
+        .reverse-search-btn:hover { background: #0056b3; }
         /* Sticky Ad */
-        .sticky-ad {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            width: 300px;
-            height: 250px;
-            z-index: 1000;
-        }
-
+        .sticky-ad { position: fixed; bottom: 10px; right: 10px; width: 300px; height: 250px; z-index: 1000; }
     </style>
 </head>
 
@@ -164,8 +53,6 @@
         <button id="searchBtn">🔍 Search</button>
 
         <div id="result"></div>
-
-        <!-- Recent Searches -->
         <div id="recent-searches"></div>
     </div>
 
@@ -221,12 +108,26 @@
             if (!file) { alert("Please select an image to upload."); return; }
             let formData = new FormData();
             formData.append("file", file);
+
             fetch("/upload", { method: "POST", body: formData })
             .then(response => response.json())
             .then(data => {
                 document.getElementById("enhanced-preview").src = data.enhanced_image_url;
                 document.getElementById("enhanced-preview").style.display = "block";
-            });
+
+                let resultDiv = document.getElementById("result");
+                resultDiv.innerHTML = `<h3>🔍 Reverse Search:</h3>`;
+                Object.keys(data.reverse_search_links).forEach(engine => {
+                    resultDiv.innerHTML += `<a class="reverse-search-btn" href="${data.reverse_search_links[engine]}" target="_blank">${engine}</a>`;
+                });
+
+                let recentSearchDiv = document.getElementById("recent-searches");
+                recentSearchDiv.innerHTML = "<h3>🕘 Recent Searches:</h3>";
+                data.recent_searches.forEach(search => {
+                    recentSearchDiv.innerHTML += `<p><a href="${search.image_url}" target="_blank">${search.caption}</a></p>`;
+                });
+
+            }).catch(error => console.error("Error:", error));
         });
     </script>
 
