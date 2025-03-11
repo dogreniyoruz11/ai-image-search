@@ -158,23 +158,13 @@
 
 <body>
 
-    <!-- Top Ad (Banner) -->
-    <div style="text-align: center; margin-bottom: 10px;">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="YOUR_ADSENSE_ID"
-             data-ad-slot="TOP_AD_SLOT"
-             data-ad-format="auto"></ins>
-        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </div>
-
     <div class="container">
         <h2>🔍 AI Image Reverse Search</h2>
 
-        <label for="imageInput" class="upload-box" id="drop-area">
+        <div class="upload-box" id="drop-area">
             <p>Drag & Drop or Click to Upload</p>
-        </label>
-        <input type="file" id="imageInput" accept="image/*">
+            <input type="file" id="imageInput" accept="image/*">
+        </div>
         <img id="preview" src="#" alt="Original Image Preview">
 
         <button id="searchBtn">🔍 Search</button>
@@ -237,8 +227,10 @@
             .then(data => {
                 let resultDiv = document.getElementById("result");
                 resultDiv.innerHTML = `<h3>🔍 Reverse Search:</h3>`;
-                Object.keys(data.reverse_search_links).forEach(engine => {
-                    resultDiv.innerHTML += `<a class="reverse-search-btn" href="${data.reverse_search_links[engine]}" target="_blank">${engine}</a>`;
+                ["Google Lens", "Bing Visual Search", "Yandex Reverse Search"].forEach(engine => {
+                    if (data.reverse_search_links[engine]) {
+                        resultDiv.innerHTML += `<a class="reverse-search-btn" href="${data.reverse_search_links[engine]}" target="_blank">${engine}</a>`;
+                    }
                 });
 
                 // Show Recent Searches
