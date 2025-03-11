@@ -138,10 +138,9 @@
     </div>
 
     <script>
-        let dropArea = document.getElementById("drop-area");
+        let dropArea = document.body;
         let imageInput = document.getElementById("imageInput");
 
-        // ✅ Drag & Drop Anywhere on Page
         document.body.addEventListener("dragover", function (event) {
             event.preventDefault();
             document.body.style.background = "#e9f5ff";
@@ -194,7 +193,10 @@
                     <h3>🔍 Reverse Search:</h3>
                     <a class="reverse-search-btn" href="${data.reverse_search_links['Google Lens']}" target="_blank">Google Lens</a>
                     <a class="reverse-search-btn" href="${data.reverse_search_links['Yandex Reverse Search']}" target="_blank">Yandex Search</a>
-                    <a class="reverse-search-btn" href="https://www.bing.com/visualsearch" target="_blank">Bing (Upload Manually)</a>
+                    <a class="reverse-search-btn" href="${data.reverse_search_links['Bing Visual Search']}" target="_blank">Bing Search</a>
+                    <a class="reverse-search-btn" href="${data.reverse_search_links['Karma Decay']}" target="_blank">Reddit Reverse Search</a>
+                    <a class="reverse-search-btn" href="${data.reverse_search_links['IQDB']}" target="_blank">Anime & Art Search (IQDB)</a>
+                    <a class="reverse-search-btn" href="${data.reverse_search_links['WhatAnime']}" target="_blank">Anime Scene Search</a>
                 `;
             });
         });
