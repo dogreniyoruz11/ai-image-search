@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Image Reverse Search</title>
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
-        
+
         * {
             margin: 0;
             padding: 0;
@@ -35,7 +34,6 @@
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             text-align: center;
-            position: relative;
         }
 
         h2 {
@@ -127,10 +125,10 @@
     <div class="container">
         <h2>🔍 AI Image Reverse Search</h2>
 
-        <div class="upload-box" id="drop-area">
+        <label for="imageInput" class="upload-box" id="drop-area">
             <p>Drag & Drop or Click to Upload</p>
             <input type="file" id="imageInput" accept="image/*">
-        </div>
+        </label>
         <img id="preview" src="#" alt="Uploaded Image">
         <p id="processing">⏳ Processing your image...</p>
 
@@ -140,7 +138,31 @@
     </div>
 
     <script>
-        $("#imageInput").change(function(event) {
+        let dropArea = document.getElementById("drop-area");
+        let imageInput = document.getElementById("imageInput");
+
+        // ✅ Drag & Drop Anywhere on Page
+        document.body.addEventListener("dragover", function (event) {
+            event.preventDefault();
+            document.body.style.background = "#e9f5ff";
+        });
+
+        document.body.addEventListener("dragleave", function () {
+            document.body.style.background = "#f8f9fa";
+        });
+
+        document.body.addEventListener("drop", function (event) {
+            event.preventDefault();
+            document.body.style.background = "#f8f9fa";
+
+            let file = event.dataTransfer.files[0];
+            imageInput.files = event.dataTransfer.files;
+            previewImage(file);
+        });
+
+        dropArea.addEventListener("click", () => imageInput.click());
+
+        imageInput.addEventListener("change", function (event) {
             let file = event.target.files[0];
             previewImage(file);
         });
@@ -148,29 +170,32 @@
         function previewImage(file) {
             if (file) {
                 let reader = new FileReader();
-                reader.onload = function(e) {
-                    $("#preview").attr("src", e.target.result).show();
+                reader.onload = function (e) {
+                    document.getElementById("preview").src = e.target.result;
+                    document.getElementById("preview").style.display = "block";
                 };
                 reader.readAsDataURL(file);
             }
         }
 
-        $("#searchBtn").click(function() {
-            $("#processing").show();
-            let file = $("#imageInput")[0].files[0];
+        document.getElementById("searchBtn").addEventListener("click", function () {
+            let file = imageInput.files[0];
+            if (!file) { alert("Please select an image to upload."); return; }
 
+            document.getElementById("processing").style.display = "block";
             let formData = new FormData();
             formData.append("file", file);
 
             fetch("/upload", { method: "POST", body: formData })
             .then(response => response.json())
             .then(data => {
-                $("#processing").hide();
-                $("#result").html(`
-                    <a class="reverse-search-btn" href="${data.reverse_search_links.Google}" target="_blank">Google Lens</a>
-                    <a class="reverse-search-btn" href="${data.reverse_search_links.Yandex}" target="_blank">Yandex Search</a>
-                    <a class="reverse-search-btn" href="${data.reverse_search_links.Bing}" target="_blank">Bing Upload</a>
-                `);
+                document.getElementById("processing").style.display = "none";
+                document.getElementById("result").innerHTML = `
+                    <h3>🔍 Reverse Search:</h3>
+                    <a class="reverse-search-btn" href="${data.reverse_search_links['Google Lens']}" target="_blank">Google Lens</a>
+                    <a class="reverse-search-btn" href="${data.reverse_search_links['Yandex Reverse Search']}" target="_blank">Yandex Search</a>
+                    <a class="reverse-search-btn" href="https://www.bing.com/visualsearch" target="_blank">Bing (Upload Manually)</a>
+                `;
             });
         });
     </script>
