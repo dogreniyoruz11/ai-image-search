@@ -23,12 +23,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 20px;
         }
 
         .container {
             width: 100%;
-            max-width: 500px;
+            max-width: 550px;
             padding: 25px;
             background: white;
             border-radius: 12px;
@@ -48,7 +50,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 15px;
+            padding: 20px;
             border: 2px dashed #007BFF;
             border-radius: 10px;
             background-color: #f8f9fa;
@@ -92,7 +94,16 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
 
-        #result {
+        #enhanced-preview {
+            display: none;
+            width: 100%;
+            max-height: 250px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            margin-top: 10px;
+        }
+
+        #result, #recent-searches {
             margin-top: 20px;
             text-align: left;
             font-size: 16px;
@@ -114,6 +125,17 @@
         .reverse-search-btn:hover {
             background: #0056b3;
         }
+
+        /* Sticky Ad */
+        .sticky-ad {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            width: 300px;
+            height: 250px;
+            z-index: 1000;
+        }
+
     </style>
 </head>
 
@@ -132,15 +154,19 @@
     <div class="container">
         <h2>🔍 AI Image Reverse Search</h2>
 
-        <label for="imageInput" class="upload-box">
-            <p>Click to Upload an Image</p>
+        <label for="imageInput" class="upload-box" id="drop-area">
+            <p>Drag & Drop or Click to Upload</p>
         </label>
         <input type="file" id="imageInput" accept="image/*">
-        <img id="preview" src="#" alt="Image Preview">
+        <img id="preview" src="#" alt="Original Image Preview">
+        <img id="enhanced-preview" src="#" alt="AI Enhanced Image">
 
         <button id="searchBtn">🔍 Search</button>
 
         <div id="result"></div>
+
+        <!-- Recent Searches -->
+        <div id="recent-searches"></div>
     </div>
 
     <!-- Bottom Ad (Banner) -->
@@ -153,9 +179,33 @@
         <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
     </div>
 
+    <!-- Sticky Ad -->
+    <div class="sticky-ad">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="YOUR_ADSENSE_ID"
+             data-ad-slot="STICKY_AD_SLOT"
+             data-ad-format="auto"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
     <script>
-        document.getElementById("imageInput").addEventListener("change", function(event) {
-            let file = event.target.files[0];
+        let dropArea = document.getElementById("drop-area");
+        let imageInput = document.getElementById("imageInput");
+
+        dropArea.addEventListener("click", () => imageInput.click());
+        dropArea.addEventListener("dragover", (event) => { event.preventDefault(); dropArea.style.background = "#e9f5ff"; });
+        dropArea.addEventListener("dragleave", () => dropArea.style.background = "#f8f9fa");
+        dropArea.addEventListener("drop", (event) => {
+            event.preventDefault();
+            dropArea.style.background = "#f8f9fa";
+            imageInput.files = event.dataTransfer.files;
+            previewImage(event.dataTransfer.files[0]);
+        });
+
+        imageInput.addEventListener("change", function(event) { previewImage(event.target.files[0]); });
+
+        function previewImage(file) {
             if (file) {
                 let reader = new FileReader();
                 reader.onload = function(e) {
@@ -164,31 +214,19 @@
                 };
                 reader.readAsDataURL(file);
             }
-        });
+        }
 
-        document.getElementById("searchBtn").addEventListener("click", function(event) {
-            let fileInput = document.getElementById("imageInput").files[0];
-            if (!fileInput) {
-                alert("Please select an image to upload.");
-                return;
-            }
-
+        document.getElementById("searchBtn").addEventListener("click", function() {
+            let file = imageInput.files[0];
+            if (!file) { alert("Please select an image to upload."); return; }
             let formData = new FormData();
-            formData.append("file", fileInput);
-            
-            fetch("/upload", {
-                method: "POST",
-                body: formData
-            })
+            formData.append("file", file);
+            fetch("/upload", { method: "POST", body: formData })
             .then(response => response.json())
             .then(data => {
-                let resultDiv = document.getElementById("result");
-                resultDiv.innerHTML = `<h3>🔍 Reverse Search:</h3>`;
-                Object.keys(data.reverse_search_links).forEach(engine => {
-                    resultDiv.innerHTML += `<a class="reverse-search-btn" href="${data.reverse_search_links[engine]}" target="_blank">${engine}</a>`;
-                });
-            })
-            .catch(error => console.error("Error:", error));
+                document.getElementById("enhanced-preview").src = data.enhanced_image_url;
+                document.getElementById("enhanced-preview").style.display = "block";
+            });
         });
     </script>
 
