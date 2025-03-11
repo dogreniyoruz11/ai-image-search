@@ -12,22 +12,36 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__, template_folder='templates')
 
 # Load AI Model
-model = tf.keras.applications.MobileNetV2(weights='imagenet')
+try:
+    model = tf.keras.applications.MobileNetV2(weights='imagenet')
+    logging.info("AI Model Loaded Successfully")
+except Exception as e:
+    logging.error(f"Error Loading AI Model: {e}")
 
 # Function to preprocess image for AI model
 def preprocess_image(image_path):
-    image = Image.open(image_path)
-    image = image.resize((224, 224))
-    image_array = np.array(image) / 255.0  # Normalize
-    image_array = np.expand_dims(image_array, axis=0)
-    return image_array
+    try:
+        image = Image.open(image_path)
+        image = image.resize((224, 224))
+        image_array = np.array(image) / 255.0  # Normalize
+        image_array = np.expand_dims(image_array, axis=0)
+        return image_array
+    except Exception as e:
+        logging.error(f"Error Preprocessing Image: {e}")
+        return None
 
 # Function to perform AI-based object recognition
 def recognize_objects(image_path):
     processed_image = preprocess_image(image_path)
-    predictions = model.predict(processed_image)
-    decoded_predictions = tf.keras.applications.mobilenet_v2.decode_predictions(predictions, top=3)[0]
-    return decoded_predictions
+    if processed_image is None:
+        return None
+    try:
+        predictions = model.predict(processed_image)
+        decoded_predictions = tf.keras.applications.mobilenet_v2.decode_predictions(predictions, top=3)[0]
+        return decoded_predictions
+    except Exception as e:
+        logging.error(f"Error Processing Image in AI Model: {e}")
+        return None
 
 # Home route
 @app.route('/')
@@ -38,25 +52,34 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload_image():
     logging.info("Received image upload request")
-    
+
     if 'file' not in request.files:
         logging.error("No file found in request")
         return jsonify({'error': 'No file uploaded'}), 400
-    
+
     file = request.files['file']
     if file.filename == '':
         logging.error("Empty file uploaded")
         return jsonify({'error': 'No file uploaded'}), 400
 
     # Save the file temporarily
-    file_path = os.path.join('uploads', file.filename)
-    os.makedirs('uploads', exist_ok=True)  # Ensure directory exists
-    file.save(file_path)
-    logging.info(f"File saved at {file_path}")
+    upload_folder = 'uploads'
+    os.makedirs(upload_folder, exist_ok=True)  # Ensure directory exists
+    file_path = os.path.join(upload_folder, file.filename)
+    
+    try:
+        file.save(file_path)
+        logging.info(f"File saved at {file_path}")
+    except Exception as e:
+        logging.error(f"Error saving file: {e}")
+        return jsonify({'error': 'Error saving file'}), 500
 
     # Perform object recognition
     try:
         results = recognize_objects(file_path)
+        if results is None:
+            return jsonify({'error': 'AI model failed to process image'}), 500
+
         search_results = f'https://www.bing.com/images/search?q={results[0][1]}'
 
         return jsonify({
@@ -64,7 +87,8 @@ def upload_image():
                 {'name': result[1], 'confidence': float(result[2])} 
                 for result in results
             ],
-            'search_results_url': search_results
+            'search_results_url': search_results,
+            'uploaded_image_path': file_path
         })
     except Exception as e:
         logging.error(f"Error processing image: {e}")
