@@ -12,11 +12,11 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__, template_folder='templates')
 
-# Ensure "uploads" directory exists
+# Ensure "uploads" and "enhanced" directories exist
 os.makedirs("uploads", exist_ok=True)
 os.makedirs("uploads/enhanced", exist_ok=True)
 
-# Load AI Model for Image Enhancement & Captioning
+# ✅ Load AI Model for Image Captioning & Enhancement
 try:
     model = tf.keras.applications.MobileNetV2(weights='imagenet')
     model.compile()
@@ -123,6 +123,5 @@ def uploaded_file(filename):
     return send_from_directory('uploads', filename)
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  # Use Railway/Heroku-assigned port
+    port = int(os.environ.get('PORT', 5000))  # Use dynamic port
     app.run(debug=True, host='0.0.0.0', port=port)
-
