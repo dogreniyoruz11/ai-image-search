@@ -11,12 +11,15 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__, template_folder='templates')
 
-# Load AI Model
+# Load AI Model with Better Error Handling
 try:
     model = tf.keras.applications.MobileNetV2(weights='imagenet')
+    model.compile()  # Ensures model is ready for predictions
     logging.info("AI Model Loaded Successfully")
 except Exception as e:
     logging.error(f"Error Loading AI Model: {e}")
+    model = None  # Prevents app from crashing
+
 
 # Function to preprocess image for AI model
 def preprocess_image(image_path):
