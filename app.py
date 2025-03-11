@@ -1,6 +1,5 @@
 import os
 import logging
-import json
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from PIL import Image
 import numpy as np
@@ -14,9 +13,8 @@ app = Flask(__name__, template_folder='templates')
 
 # Ensure directories exist
 os.makedirs("uploads", exist_ok=True)
-os.makedirs("uploads/enhanced", exist_ok=True)
 
-# Load AI Model for Image Enhancement & Captioning
+# Load AI Model for Image Captioning
 try:
     model = tf.keras.applications.MobileNetV2(weights='imagenet')
     model.compile()
@@ -38,18 +36,6 @@ def generate_image_caption(image_path):
     except Exception as e:
         logging.error(f"❌ Error generating caption: {e}")
         return "Unknown Image"
-
-# ✅ AI-Based Image Enhancement (Upscaling)
-def enhance_image(image_path):
-    try:
-        image = cv2.imread(image_path)
-        image_upscaled = cv2.resize(image, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
-        enhanced_path = image_path.replace("uploads", "uploads/enhanced")
-        cv2.imwrite(enhanced_path, image_upscaled)
-        return enhanced_path
-    except Exception as e:
-        logging.error(f"❌ Error enhancing image: {e}")
-        return image_path
 
 # ✅ Home Route
 @app.route('/')
@@ -74,46 +60,18 @@ def upload_image():
     file_path = os.path.join("uploads", filename)
     file.save(file_path)
 
-    # ✅ AI-Based Enhancements
-    enhanced_image_path = enhance_image(file_path)
-    image_caption = generate_image_caption(file_path)
-
     # ✅ Get the full image URL
     image_url = f"{request.host_url}uploads/{filename}"
-    enhanced_image_url = f"{request.host_url}uploads/enhanced/{filename}"
 
-    # ✅ Reverse Search Links (Fixed Bing & TinEye URL Format)
+    # ✅ Reverse Search Links (Fixed Bing & Removed Unwanted Links)
     search_links = {
-        "🔍 Google Lens": f"https://lens.google.com/uploadbyurl?url={image_url}",
-        "🔍 Bing Visual Search": f"https://www.bing.com/images/search?q=imgurl:{image_url}&view=detailv2",
-        "🔍 Yandex Reverse Search": f"https://yandex.com/images/search?source=collections&rpt=imageview&url={image_url}",
-        "🔍 Pinterest Image Search": f"https://www.pinterest.com/search/pins/?q={image_url}",
-        "🔍 TinEye Reverse Image": f"https://www.tineye.com/search/?url={image_url}",
-        "🔍 Reddit Image Search": f"https://www.reddit.com/search?q={image_url}",
-        "🔍 Etsy Reverse Search": f"https://www.etsy.com/search?q={image_url}"
+        "Google Lens": f"https://lens.google.com/uploadbyurl?url={image_url}",
+        "Bing Visual Search": f"https://www.bing.com/images/search?q=imgurl:{image_url}&view=detailv2",
+        "Yandex Reverse Search": f"https://yandex.com/images/search?source=collections&rpt=imageview&url={image_url}",
     }
 
-    # ✅ Save Recent Searches (Only Keep Last 5 Images)
-    recent_searches = []
-    if os.path.exists("recent_searches.json"):
-        with open("recent_searches.json", "r") as f:
-            try:
-                recent_searches = json.load(f)
-            except:
-                recent_searches = []
-
-    recent_searches.append({"image_url": image_url, "caption": image_caption})
-    recent_searches = recent_searches[-5:]  # Keep only last 5 searches
-
-    with open("recent_searches.json", "w") as f:
-        json.dump(recent_searches, f)
-
     return jsonify({
-        'reverse_search_links': search_links,
-        'uploaded_image_url': image_url,
-        'enhanced_image_url': enhanced_image_url,
-        'image_caption': image_caption,
-        'recent_searches': recent_searches
+        'reverse_search_links': search_links
     })
 
 # ✅ Serve Uploaded Images
