@@ -63,14 +63,15 @@ def upload_image():
     # ✅ Get the full image URL
     image_url = f"{request.host_url}uploads/{filename}"
 
-    # ✅ Reverse Search Links (Fixed Bing & Removed Unwanted Links)
+    # ✅ Reverse Search Links (Fixed Bing Issue)
     search_links = {
         "Google Lens": f"https://lens.google.com/uploadbyurl?url={image_url}",
-        "Bing Visual Search": f"https://www.bing.com/images/search?q=imgurl:{image_url}&view=detailv2",
         "Yandex Reverse Search": f"https://yandex.com/images/search?source=collections&rpt=imageview&url={image_url}",
+        "Bing Visual Search (Manual Upload)": "https://www.bing.com/visualsearch"  # Bing does NOT support direct URLs
     }
 
     return jsonify({
+        'uploaded_image_url': image_url,
         'reverse_search_links': search_links
     })
 
