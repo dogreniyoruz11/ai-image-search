@@ -5,12 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Image Reverse Search</title>
 
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=YOUR_ADSENSE_ID" crossorigin="anonymous"></script>
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
-
+        
         * {
             margin: 0;
             padding: 0;
@@ -130,7 +127,7 @@
             <p>Drag & Drop or Click to Upload</p>
             <input type="file" id="imageInput" accept="image/*">
         </div>
-        <img id="preview" src="#" alt="Original Image Preview">
+        <img id="preview" src="#" alt="Uploaded Image">
 
         <button id="searchBtn">🔍 Search</button>
 
@@ -138,27 +135,7 @@
     </div>
 
     <script>
-        let dropArea = document.body; // Now allows drag & drop anywhere on the page
-        let imageInput = document.getElementById("imageInput");
-
-        document.getElementById("drop-area").addEventListener("click", () => imageInput.click());
-
-        dropArea.addEventListener("dragover", (event) => {
-            event.preventDefault();
-            document.body.style.background = "#e9f5ff"; // Highlight the whole page
-        });
-
-        dropArea.addEventListener("dragleave", () => document.body.style.background = "#f8f9fa");
-
-        dropArea.addEventListener("drop", (event) => {
-            event.preventDefault();
-            document.body.style.background = "#f8f9fa";
-            let file = event.dataTransfer.files[0];
-            imageInput.files = event.dataTransfer.files;
-            previewImage(file);
-        });
-
-        imageInput.addEventListener("change", function(event) {
+        document.getElementById("imageInput").addEventListener("change", function(event) {
             let file = event.target.files[0];
             previewImage(file);
         });
@@ -173,26 +150,6 @@
                 reader.readAsDataURL(file);
             }
         }
-
-        document.getElementById("searchBtn").addEventListener("click", function() {
-            let file = imageInput.files[0];
-            if (!file) { alert("Please select an image to upload."); return; }
-
-            let formData = new FormData();
-            formData.append("file", file);
-
-            fetch("/upload", { method: "POST", body: formData })
-            .then(response => response.json())
-            .then(data => {
-                let resultDiv = document.getElementById("result");
-                resultDiv.innerHTML = `<h3>🔍 Reverse Search:</h3>`;
-                ["Google Lens", "Bing Visual Search", "Yandex Reverse Search"].forEach(engine => {
-                    if (data.reverse_search_links[engine]) {
-                        resultDiv.innerHTML += `<a class="reverse-search-btn" href="${data.reverse_search_links[engine]}" target="_blank">${engine}</a>`;
-                    }
-                });
-            });
-        });
     </script>
 
 </body>
