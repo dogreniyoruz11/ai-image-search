@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from PIL import Image
 import numpy as np
 import tensorflow as tf
@@ -15,9 +15,9 @@ app = Flask(__name__, template_folder='templates')
 try:
     model = tf.keras.applications.MobileNetV2(weights='imagenet')
     model.compile()  # Ensures model is ready for predictions
-    logging.info("AI Model Loaded Successfully")
+    logging.info("✅ AI Model Loaded Successfully")
 except Exception as e:
-    logging.error(f"Error Loading AI Model: {e}")
+    logging.error(f"❌ Error Loading AI Model: {e}")
     model = None  # Prevents app from crashing
 
 
@@ -30,7 +30,7 @@ def preprocess_image(image_path):
         image_array = np.expand_dims(image_array, axis=0)
         return image_array
     except Exception as e:
-        logging.error(f"Error Preprocessing Image: {e}")
+        logging.error(f"❌ Error Preprocessing Image: {e}")
         return None
 
 
@@ -38,11 +38,11 @@ def preprocess_image(image_path):
 def recognize_objects(image_path):
     processed_image = preprocess_image(image_path)
     if processed_image is None:
-        logging.error("Failed to preprocess image")
+        logging.error("❌ Failed to preprocess image")
         return None
 
     if model is None:
-        logging.error("AI Model is not loaded")
+        logging.error("❌ AI Model is not loaded")
         return None
 
     try:
@@ -50,7 +50,7 @@ def recognize_objects(image_path):
         decoded_predictions = tf.keras.applications.mobilenet_v2.decode_predictions(predictions, top=3)[0]
         return decoded_predictions
     except Exception as e:
-        logging.error(f"Error Processing Image in AI Model: {e}")
+        logging.error(f"❌ Error Processing Image in AI Model: {e}")
         return None
 
 
@@ -59,7 +59,8 @@ def recognize_objects(image_path):
 def index():
     return render_template('index.html')
 
-# Fix Upload API
+
+# ✅ Fixed Upload API
 @app.route('/upload', methods=['POST'])
 def upload_image():
     if 'file' not in request.files:
@@ -76,9 +77,8 @@ def upload_image():
     if not results:
         return jsonify({'error': 'AI model failed to process image'}), 500
 
-    # ✅ Fix: Ensure correct spacing & indentation
     query = results[0][1].replace(" ", "+")
-    
+
     # ✅ Fix: Add multiple search engines
     search_links = {
         "Google": f"https://www.google.com/search?tbm=isch&q={query}",
@@ -92,26 +92,12 @@ def upload_image():
             {'name': result[1], 'confidence': float(result[2])}
             for result in results
         ],
-        'search_results': search_links
+        'search_results': search_links,
+        'uploaded_image_url': request.host_url + 'uploads/' + file.filename  # ✅ Ensures image preview works
     })
-        
-        return jsonify({
-            'recognized_objects': [
-                {'name': result[1], 'confidence': float(result[2])} 
-                for result in results
-            ],
-            'search_results_url': search_results,
-            'uploaded_image_url': request.host_url + 'uploads/' + file.filename
-
-        })
-    except Exception as e:
-        logging.error(f"Error processing image: {e}")
-        return jsonify({'error': 'Error processing image'}), 500
 
 
-from flask import send_from_directory
-
-# Serve Uploaded Images
+# ✅ Serve Uploaded Images (Fix for Image Preview Issue)
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory('uploads', filename)
