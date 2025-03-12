@@ -103,6 +103,8 @@
         let imageInput = document.getElementById("imageInput");
         let searchBtn = document.getElementById("searchBtn");
         let previewImage = document.getElementById("preview");
+        let resultDiv = document.getElementById("result");
+        let processingDiv = document.getElementById("processing");
         let selectedFile = null;
 
         document.getElementById("drop-area").addEventListener("click", () => imageInput.click());
@@ -147,7 +149,8 @@
                 return;
             }
 
-            document.getElementById("processing").style.display = "block";
+            processingDiv.style.display = "block";
+            resultDiv.innerHTML = ""; // Clear previous results
 
             let formData = new FormData();
             formData.append("file", selectedFile);
@@ -155,8 +158,19 @@
             fetch("/upload", { method: "POST", body: formData })
             .then(response => response.json())
             .then(data => {
-                document.getElementById("processing").style.display = "none";
-                document.getElementById("result").innerHTML = `<h3>${data.message}</h3>`;
+                processingDiv.style.display = "none";
+                resultDiv.innerHTML = `<h3>${data.message}</h3>`;
+
+                let searchEngines = ["Google Lens", "Yandex Reverse Search", "Bing Search", "Pinterest Image Search"];
+                searchEngines.forEach(engine => {
+                    if (data.reverse_search_links[engine]) {
+                        resultDiv.innerHTML += `<a class="reverse-search-btn" href="${data.reverse_search_links[engine]}" target="_blank">${engine}</a>`;
+                    }
+                });
+            })
+            .catch(error => {
+                processingDiv.style.display = "none";
+                resultDiv.innerHTML = "<p>❌ Error processing the image. Try again.</p>";
             });
         });
     </script>
