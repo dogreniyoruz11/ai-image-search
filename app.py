@@ -1,11 +1,6 @@
 import os
 import logging
-import json
 from flask import Flask, request, jsonify, render_template, send_from_directory
-from PIL import Image
-import numpy as np
-import tensorflow as tf
-import cv2
 
 # Enable Logging
 logging.basicConfig(level=logging.DEBUG)
@@ -14,29 +9,6 @@ app = Flask(__name__, template_folder='templates')
 
 # Ensure directories exist
 os.makedirs("uploads", exist_ok=True)
-
-# ✅ Load AI Model for Image Captioning
-try:
-    model = tf.keras.applications.MobileNetV2(weights='imagenet')
-    model.compile()
-    logging.info("✅ AI Model Loaded Successfully")
-except Exception as e:
-    logging.error(f"❌ Error Loading AI Model: {e}")
-    model = None
-
-# ✅ AI-Based Image Caption Generator
-def generate_image_caption(image_path):
-    try:
-        image = Image.open(image_path).convert('RGB')
-        image = image.resize((224, 224))
-        image_array = np.array(image, dtype=np.float32) / 255.0
-        image_array = np.expand_dims(image_array, axis=0)
-        predictions = model.predict(image_array)
-        decoded_predictions = tf.keras.applications.mobilenet_v2.decode_predictions(predictions, top=1)[0]
-        return decoded_predictions[0][1]  # Best matching label
-    except Exception as e:
-        logging.error(f"❌ Error generating caption: {e}")
-        return "Unknown Image"
 
 # ✅ Home Route
 @app.route('/')
@@ -56,7 +28,7 @@ def upload_image():
 
     image_url = f"{request.host_url}uploads/{filename}"
 
-    # ✅ Reverse Search Links (Only Google, Bing, Yandex, Pinterest)
+    # ✅ Reverse Search Links
     search_links = {
         "Google Lens": f"https://lens.google.com/uploadbyurl?url={image_url}",
         "Yandex Reverse Search": f"https://yandex.com/images/search?source=collections&rpt=imageview&url={image_url}",
