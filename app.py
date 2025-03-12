@@ -14,9 +14,8 @@ app = Flask(__name__, template_folder='templates')
 
 # Ensure directories exist
 os.makedirs("uploads", exist_ok=True)
-os.makedirs("uploads/enhanced", exist_ok=True)
 
-# Load AI Model for Image Captioning
+# ✅ Load AI Model for Image Captioning
 try:
     model = tf.keras.applications.MobileNetV2(weights='imagenet')
     model.compile()
@@ -57,17 +56,16 @@ def upload_image():
 
     image_url = f"{request.host_url}uploads/{filename}"
 
-    # ✅ Reverse Search Links (Fixed Bing Format & Auto-Search)
+    # ✅ Reverse Search Links (Only Google, Bing, Yandex, Pinterest)
     search_links = {
         "Google Lens": f"https://lens.google.com/uploadbyurl?url={image_url}",
         "Yandex Reverse Search": f"https://yandex.com/images/search?source=collections&rpt=imageview&url={image_url}",
-        "Bing Search": f"https://www.bing.com/images/search?view=detailv2&imgurl={image_url}",
-        "Reddit Reverse Search": f"https://www.reddit.com/search?q={image_url}",
-        "IQDB (Anime & Art)": f"https://iqdb.org/?url={image_url}",
-        "WhatAnime (Anime Scene Search)": f"https://trace.moe/?url={image_url}"
+        "Bing Search": f"https://www.bing.com/images/search?q=imgurl:{image_url}&view=detailv2",
+        "Pinterest Image Search": f"https://www.pinterest.com/search/pins/?q={image_url}"
     }
 
     return jsonify({
+        'message': "✅ Image Uploaded Successfully!",
         'reverse_search_links': search_links,
         'uploaded_image_url': image_url
     })
