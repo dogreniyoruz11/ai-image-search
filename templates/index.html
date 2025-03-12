@@ -138,16 +138,14 @@
     </div>
 
 <script>
-    let dropArea = document.body;
+    let dropArea = document.body; 
     let imageInput = document.getElementById("imageInput");
     let searchBtn = document.getElementById("searchBtn");
-    let preview = document.getElementById("preview");
-    let resultDiv = document.getElementById("result");
+    let previewImage = document.getElementById("preview");
 
-    // ✅ Clicking Upload Box Triggers File Selection
     document.getElementById("drop-area").addEventListener("click", () => imageInput.click());
 
-    // ✅ Drag & Drop Anywhere on Page
+    // Drag & Drop functionality for mobile & desktop
     dropArea.addEventListener("dragover", (event) => {
         event.preventDefault();
         document.body.style.background = "#e9f5ff";
@@ -159,75 +157,67 @@
         event.preventDefault();
         document.body.style.background = "#f8f9fa";
         let file = event.dataTransfer.files[0];
-        imageInput.files = event.dataTransfer.files;
-        previewImage(file);
+        if (file) {
+            imageInput.files = event.dataTransfer.files;
+            previewImageFile(file);
+        }
     });
 
-    // ✅ File Selection & Image Preview
+    // Mobile & Desktop File Selection Fix
     imageInput.addEventListener("change", function(event) {
         let file = event.target.files[0];
-        previewImage(file);
+        if (file) {
+            previewImageFile(file);
+        }
     });
 
-    function previewImage(file) {
-        if (file) {
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                preview.src = e.target.result;
-                preview.style.display = "block";
-            };
-            reader.readAsDataURL(file);
-        }
+    // Image Preview Function (Ensures Image is Shown Properly)
+    function previewImageFile(file) {
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            previewImage.src = e.target.result;
+            previewImage.style.display = "block";
+            searchBtn.disabled = false;  // Enable Search Button
+        };
+        reader.readAsDataURL(file);
     }
 
-    // ✅ Search Button Logic
-    searchBtn.addEventListener("click", function(event) {
-        event.preventDefault(); // Stop default behavior
-
+    // Search Button Click - Ensure Image is Uploaded Before Proceeding
+    searchBtn.addEventListener("click", function() {
         let file = imageInput.files[0];
         if (!file) {
             alert("Please select an image to upload.");
             return;
         }
 
-        // ✅ Show "Processing..." Effect
-        searchBtn.innerHTML = "⏳ Processing...";
-        searchBtn.disabled = true;
-
         let formData = new FormData();
         formData.append("file", file);
 
+        // Show Processing UI
+        searchBtn.innerHTML = "Processing...";
+        searchBtn.disabled = true;
+
         fetch("/upload", { method: "POST", body: formData })
-            .then(response => response.json())
-            .then(data => {
-                searchBtn.innerHTML = "🔍 Search";
-                searchBtn.disabled = false;
+        .then(response => response.json())
+        .then(data => {
+            searchBtn.innerHTML = "🔍 Search";
+            searchBtn.disabled = false;
 
-                resultDiv.innerHTML = `<h3>🔍 Reverse Search:</h3>`;
-                
-                let searchEngines = [
-                    { name: "Google Lens", url: data.reverse_search_links["Google Lens"] },
-                    { name: "Yandex Search", url: data.reverse_search_links["Yandex Reverse Search"] },
-                    { name: "Bing Search", url: data.reverse_search_links["Bing Visual Search"] },
-                    { name: "Reddit Reverse Search", url: data.reverse_search_links["Reddit Reverse Search"] },
-                    { name: "IQDB (Anime & Art)", url: data.reverse_search_links["IQDB"] },
-                    { name: "WhatAnime (Anime Scene Search)", url: data.reverse_search_links["WhatAnime"] }
-                ];
-
-                searchEngines.forEach(engine => {
-                    if (engine.url) {
-                        resultDiv.innerHTML += `<a class="reverse-search-btn" href="${engine.url}" target="_blank">${engine.name}</a>`;
-                    }
-                });
-            })
-            .catch(error => {
-                searchBtn.innerHTML = "🔍 Search";
-                searchBtn.disabled = false;
-                alert("Error processing your image. Please try again.");
-                console.error("Upload error:", error);
-            });
+            let resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = `<h3>🔍 Reverse Search Links:</h3>`;
+            for (let engine in data.reverse_search_links) {
+                resultDiv.innerHTML += `<a class="reverse-search-btn" href="${data.reverse_search_links[engine]}" target="_blank">${engine}</a>`;
+            }
+        })
+        .catch(error => {
+            alert("Error processing the image. Try again.");
+            console.error(error);
+            searchBtn.innerHTML = "🔍 Search";
+            searchBtn.disabled = false;
+        });
     });
 </script>
+
 
 
 
