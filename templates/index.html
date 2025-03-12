@@ -138,14 +138,16 @@
     </div>
 
 <script>
-    let dropArea = document.body; 
+    let dropArea = document.body;
     let imageInput = document.getElementById("imageInput");
     let searchBtn = document.getElementById("searchBtn");
     let previewImage = document.getElementById("preview");
+    let selectedFile = null;  // Store the selected file globally
 
+    // ✅ Allow Clicking to Select Image
     document.getElementById("drop-area").addEventListener("click", () => imageInput.click());
 
-    // Drag & Drop functionality for mobile & desktop
+    // ✅ Drag & Drop Image (Works on Desktop & Mobile)
     dropArea.addEventListener("dragover", (event) => {
         event.preventDefault();
         document.body.style.background = "#e9f5ff";
@@ -158,20 +160,21 @@
         document.body.style.background = "#f8f9fa";
         let file = event.dataTransfer.files[0];
         if (file) {
-            imageInput.files = event.dataTransfer.files;
+            selectedFile = file;  // Store the file
             previewImageFile(file);
         }
     });
 
-    // Mobile & Desktop File Selection Fix
+    // ✅ File Selection (Mobile & Desktop Fix)
     imageInput.addEventListener("change", function(event) {
         let file = event.target.files[0];
         if (file) {
+            selectedFile = file;  // Store the file
             previewImageFile(file);
         }
     });
 
-    // Image Preview Function (Ensures Image is Shown Properly)
+    // ✅ Function to Show Image Preview & Enable Search
     function previewImageFile(file) {
         let reader = new FileReader();
         reader.onload = function(e) {
@@ -182,16 +185,15 @@
         reader.readAsDataURL(file);
     }
 
-    // Search Button Click - Ensure Image is Uploaded Before Proceeding
+    // ✅ Search Button Click - Upload Image & Process
     searchBtn.addEventListener("click", function() {
-        let file = imageInput.files[0];
-        if (!file) {
+        if (!selectedFile) {
             alert("Please select an image to upload.");
             return;
         }
 
         let formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", selectedFile);
 
         // Show Processing UI
         searchBtn.innerHTML = "Processing...";
@@ -217,9 +219,6 @@
         });
     });
 </script>
-
-
-
 
 </body>
 </html>
