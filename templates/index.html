@@ -4,50 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Image Reverse Search</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: Arial, sans-serif;
+            text-align: center;
             background-color: #f8f9fa;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            min-height: 100vh;
             padding: 20px;
         }
 
         .container {
-            width: 100%;
             max-width: 550px;
-            padding: 25px;
+            margin: auto;
             background: white;
+            padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            text-align: center;
-        }
-
-        h2 {
-            font-size: 22px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 20px;
         }
 
         .upload-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
             padding: 20px;
             border: 2px dashed #007BFF;
             border-radius: 10px;
@@ -89,15 +64,6 @@
             margin-top: 15px;
             border-radius: 8px;
             display: none;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-
-        #processing {
-            display: none;
-            font-size: 16px;
-            font-weight: bold;
-            margin-top: 15px;
-            color: #007BFF;
         }
 
         .reverse-search-btn {
@@ -109,14 +75,7 @@
             border-radius: 6px;
             font-weight: bold;
             margin-top: 10px;
-            text-align: center;
-            transition: background 0.3s ease-in-out;
         }
-
-        .reverse-search-btn:hover {
-            background: #0056b3;
-        }
-
     </style>
 </head>
 
@@ -125,100 +84,82 @@
     <div class="container">
         <h2>🔍 AI Image Reverse Search</h2>
 
-        <label for="imageInput" class="upload-box" id="drop-area">
+        <div class="upload-box" id="drop-area">
             <p>Drag & Drop or Click to Upload</p>
             <input type="file" id="imageInput" accept="image/*">
-        </label>
-        <img id="preview" src="#" alt="Uploaded Image">
-        <p id="processing">⏳ Processing your image...</p>
+        </div>
+
+        <img id="preview" src="#" alt="Original Image Preview">
 
         <button id="searchBtn">🔍 Search</button>
+
+        <div id="processing" style="display:none; margin-top: 10px;">Processing Image... Please Wait.</div>
 
         <div id="result"></div>
     </div>
 
-<script>
-    let dropArea = document.body;
-    let imageInput = document.getElementById("imageInput");
-    let searchBtn = document.getElementById("searchBtn");
-    let previewImage = document.getElementById("preview");
-    let selectedFile = null;  // Store the selected file globally
+    <script>
+        let dropArea = document.body;
+        let imageInput = document.getElementById("imageInput");
+        let searchBtn = document.getElementById("searchBtn");
+        let previewImage = document.getElementById("preview");
+        let selectedFile = null;
 
-    // ✅ Allow Clicking to Select Image
-    document.getElementById("drop-area").addEventListener("click", () => imageInput.click());
+        document.getElementById("drop-area").addEventListener("click", () => imageInput.click());
 
-    // ✅ Drag & Drop Image (Works on Desktop & Mobile)
-    dropArea.addEventListener("dragover", (event) => {
-        event.preventDefault();
-        document.body.style.background = "#e9f5ff";
-    });
-
-    dropArea.addEventListener("dragleave", () => document.body.style.background = "#f8f9fa");
-
-    dropArea.addEventListener("drop", (event) => {
-        event.preventDefault();
-        document.body.style.background = "#f8f9fa";
-        let file = event.dataTransfer.files[0];
-        if (file) {
-            selectedFile = file;  // Store the file
-            previewImageFile(file);
-        }
-    });
-
-    // ✅ File Selection (Mobile & Desktop Fix)
-    imageInput.addEventListener("change", function(event) {
-        let file = event.target.files[0];
-        if (file) {
-            selectedFile = file;  // Store the file
-            previewImageFile(file);
-        }
-    });
-
-    // ✅ Function to Show Image Preview & Enable Search
-    function previewImageFile(file) {
-        let reader = new FileReader();
-        reader.onload = function(e) {
-            previewImage.src = e.target.result;
-            previewImage.style.display = "block";
-            searchBtn.disabled = false;  // Enable Search Button
-        };
-        reader.readAsDataURL(file);
-    }
-
-    // ✅ Search Button Click - Upload Image & Process
-    searchBtn.addEventListener("click", function() {
-        if (!selectedFile) {
-            alert("Please select an image to upload.");
-            return;
-        }
-
-        let formData = new FormData();
-        formData.append("file", selectedFile);
-
-        // Show Processing UI
-        searchBtn.innerHTML = "Processing...";
-        searchBtn.disabled = true;
-
-        fetch("/upload", { method: "POST", body: formData })
-        .then(response => response.json())
-        .then(data => {
-            searchBtn.innerHTML = "🔍 Search";
-            searchBtn.disabled = false;
-
-            let resultDiv = document.getElementById("result");
-            resultDiv.innerHTML = `<h3>🔍 Reverse Search Links:</h3>`;
-            for (let engine in data.reverse_search_links) {
-                resultDiv.innerHTML += `<a class="reverse-search-btn" href="${data.reverse_search_links[engine]}" target="_blank">${engine}</a>`;
-            }
-        })
-        .catch(error => {
-            alert("Error processing the image. Try again.");
-            console.error(error);
-            searchBtn.innerHTML = "🔍 Search";
-            searchBtn.disabled = false;
+        dropArea.addEventListener("dragover", (event) => {
+            event.preventDefault();
+            document.body.style.background = "#e9f5ff";
         });
-    });
-</script>
+
+        dropArea.addEventListener("dragleave", () => document.body.style.background = "#f8f9fa");
+
+        dropArea.addEventListener("drop", (event) => {
+            event.preventDefault();
+            document.body.style.background = "#f8f9fa";
+            let file = event.dataTransfer.files[0];
+            if (file) {
+                selectedFile = file;
+                previewImageFile(file);
+            }
+        });
+
+        imageInput.addEventListener("change", function(event) {
+            let file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                previewImageFile(file);
+            }
+        });
+
+        function previewImageFile(file) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewImage.style.display = "block";
+            };
+            reader.readAsDataURL(file);
+        }
+
+        searchBtn.addEventListener("click", function() {
+            if (!selectedFile) {
+                alert("Please select an image to upload.");
+                return;
+            }
+
+            document.getElementById("processing").style.display = "block";
+
+            let formData = new FormData();
+            formData.append("file", selectedFile);
+
+            fetch("/upload", { method: "POST", body: formData })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("processing").style.display = "none";
+                document.getElementById("result").innerHTML = `<h3>${data.message}</h3>`;
+            });
+        });
+    </script>
 
 </body>
 </html>
